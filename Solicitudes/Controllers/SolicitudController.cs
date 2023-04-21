@@ -122,8 +122,9 @@ namespace Solicitudes.Controllers
 
         // Procesa solicitudes
         // POST: api/Solicitud/Procesar/5
-        [HttpPost("{id}")]
-        // [Route("Procesar")]
+        //[HttpPost("{id}")]
+        //[Route("Procesar")]
+        [HttpPost("{id}", Name = "Procesar")]
         // [NonAction]
         public async Task<IActionResult> PostSolicitudProcesar(int id)
         {
@@ -148,23 +149,39 @@ namespace Solicitudes.Controllers
 
             Console.WriteLine("Flujo: "+flujo.Nombre);
 
-            // Busca los Pasos del Flujo
-            var flujoPasos = _context.FlujoPaso.Where(x => x.FlujoId == solicitud.FlujoId).OrderBy(a => a.Prioridad); // await //(x => x.Atributo == valor && x.Atributo2 == valor2)
-            if (flujoPasos == null)
+            // Busca las prioridades del flujo
+            var prioridades = _context.FlujoPaso.Where(x => x.FlujoId == solicitud.FlujoId).Select(m => m.Prioridad).Distinct().OrderBy(m => m); // await //(x => x.Atributo == valor && x.Atributo2 == valor2)
+            if (prioridades == null)
             {
                 return NotFound();
             }
 
-            // Procesa el Flujo por cada paso
-            foreach (var flujopaso in flujoPasos)
+            foreach (var prioridad in prioridades)
             {
-                // Busca el Paso
-                var paso = await _context.Paso.FindAsync(flujopaso.PasoId);
-                if (paso == null)
+                Console.WriteLine($"Procesando pasos prioridad...: {prioridad}");
+
+                // Busca los Pasos del Flujo de la prioridad
+                var flujoPasos = _context.FlujoPaso.Where(x => x.FlujoId == solicitud.FlujoId && x.Prioridad == prioridad); // await //(x => x.Atributo == valor && x.Atributo2 == valor2)
+                if (flujoPasos == null)
                 {
                     return NotFound();
                 }
-                Console.WriteLine($"Flujo: {flujopaso.FlujoId} Paso: {flujopaso.PasoId}  Priority: {flujopaso.Prioridad}  NombrePaso: {paso.Nombre}");
+
+                // Procesa el Flujo por cada paso
+                foreach (var flujopaso in flujoPasos)
+                {
+                    // Busca el Paso
+                    var paso = await _context.Paso.FindAsync(flujopaso.PasoId);
+                    if (paso == null)
+                    {
+                        return NotFound();
+                    }
+                    //Paso.wait
+                    Console.WriteLine($"Flujo: {flujopaso.FlujoId} Paso: {flujopaso.PasoId}  Priority: {flujopaso.Prioridad}  NombrePaso: {paso.Nombre}");
+                }
+
+                // WaitCallback...
+                // esperar a que terminen los hilos ...
             }
 
             /*
