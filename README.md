@@ -2,7 +2,7 @@
 #### Author: Jéimar Arias Vélez  jeimararias@yahoo.com
 #### Date: 2023-04-21
 
-## Challenge requerido Backend Develper Engineer
+## Challenge requerido para: Senior Backend Developer Engineer
 
 Este proyecto corresponde a el procesamiento de un Flujo de Solicitudes. Servicio de captura y procesamiento de datos para cualquier entidad
 
@@ -18,19 +18,19 @@ Este proyecto corresponde a el procesamiento de un Flujo de Solicitudes. Servici
 
 1. Cargar el proyecto en Visual Studio
 2. Modificar el archivo appsetting.json. En conection string: Server=[SERVIDOR DE SQL]
-3. Ejecutar el Migration de creacion de la base de datos
+3. Ejecutar el Migration de creación de la base de datos
 4. Verificar que la base de datos este creada con sus tablas respectivas.
 5. Correr el script por SSMS anexo (ConfiguracionAdicional.sql)
-> El script, crea unas Llaves foraneas y vistas, que no alcance a realizar mediante Entity Framework
+> El script, crea unas Llaves foráneas y vistas, que no alcance a realizar mediante Entity Framework
 
 ### Modelo
 
-Este es el modelo Entidad-Relacion de SOLICITUDES:
+Este es el modelo Entidad-Relación de SOLICITUDES:
 ![Modelo ER](https://drive.google.com/file/d/1Nd4S4YaFahLJcrTD1zpD93NLDgSaQV9j/view?usp=sharing)
 
 #### Tablas de parámetros
 
-Existen 5 tablas de parametros:
+Existen 5 tablas de parámetros:
 > Flujo: Se pueden crear n Flujos
 > Paso: Se pueden crear n Pasos
 > Campo: Se pueden crear n Campos
@@ -63,4 +63,3 @@ La Prioridad es un número secuencial que inicia desde 0 hasta n.
 Ej: Si los pasos 1 y 2 se pueden procesar paralelos, se configuran con prioridad 0, luego el paso3 con priorid 1, luego paso 4, 5, 6 con prioridad 2.
 En este ejemplo, se procesan los pasos 1 y 2 asincroniamente, para continuar con los pasos de la prioridad 1, espera a que hayan terminado 
 los hilos de la prioridad cero, y asi sucesivamente.
-
