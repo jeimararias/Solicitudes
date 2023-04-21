@@ -149,6 +149,9 @@ namespace Solicitudes.Controllers
 
             Console.WriteLine("Flujo: "+flujo.Nombre);
 
+            // Borrar todos los registros de control del proceso
+
+
             // Busca las prioridades del flujo
             var prioridades = _context.FlujoPaso.Where(x => x.FlujoId == solicitud.FlujoId).Select(m => m.Prioridad).Distinct().OrderBy(m => m); // await //(x => x.Atributo == valor && x.Atributo2 == valor2)
             if (prioridades == null)
@@ -167,21 +170,69 @@ namespace Solicitudes.Controllers
                     return NotFound();
                 }
 
-                // Procesa el Flujo por cada paso
+                // Procesa todos los pasos con la misma prioridad deben ejecutar en forma asincrona
                 foreach (var flujopaso in flujoPasos)
                 {
+                    // Convertir a método independiente para ejecutarlo asincrónicamente
                     // Busca el Paso
                     var paso = await _context.Paso.FindAsync(flujopaso.PasoId);
                     if (paso == null)
                     {
                         return NotFound();
                     }
-                    //Paso.wait
+
                     Console.WriteLine($"Flujo: {flujopaso.FlujoId} Paso: {flujopaso.PasoId}  Priority: {flujopaso.Prioridad}  NombrePaso: {paso.Nombre}");
+
+                    //Validar que exista el dato para el campo solicitado
+                    bool existeDato = true;
+                    // Busca los Campos para el Paso
+                    var pasoCampos = _context.PasoCampo.Where(x => x.PasoId == flujopaso.PasoId && x.EsRequerido == true); // Que sea un campo Requerido
+                    if (pasoCampos == null)
+                    {
+                        return NotFound();
+                    }
+
+                    // Valida que el campo exista en la Solicitud Data
+                    foreach (var pasocampo in pasoCampos)
+                    {
+                        var data = _context.SolicitudData.Where(x => x.SolicitudId == solicitud.Id && x.PasoId == flujopaso.PasoId && x.CampoId == pasocampo.CampoId); // Busca si existe el registro
+                        if (data == null)
+                        {
+                            existeDato = false;
+                        }
+                    }
+
+                    // Graba el registro del Paso del proceso
+                    /*
+                    using (var context1 = new SolicitudControlContext())
+                    {
+                        var blog = context.Blogs.First();
+                        blog.Url = "http://example.com/blog";
+                        context.SaveChanges();
+                    }
+                    */
+
+                    SolicitudControl solControl = new SolicitudControl();
+                    solControl.SolicitudId = solicitud.Id;
+                    solControl.PasoId = flujopaso.PasoId;
+                    if (existeDato)
+                    {
+                        solControl.Detalle = "Paso OK";
+                        solControl.IDEstado = 3; //Correcto
+                    }
+                    else
+                    {
+                        solControl.Detalle = "Faltan datos para el paso";
+                        solControl.IDEstado = 9; //Incorrecto
+                    }
+
+
+
+                    //Paso.wait
                 }
 
+                // esperar a que terminen los hilos para procesar la siguiente prioridad...
                 // WaitCallback...
-                // esperar a que terminen los hilos ...
             }
 
             /*
