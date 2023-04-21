@@ -149,8 +149,22 @@ namespace Solicitudes.Controllers
 
             Console.WriteLine("Flujo: "+flujo.Nombre);
 
-            // Borrar todos los registros de control del proceso
+            bool existeDato = true; // Controla si existe algun error
 
+            // Borrar todos los registros de control del proceso
+            var idSolCtl = _context.SolicitudControl.Where(x => x.SolicitudId == id).Select(m => m.Id);
+            if (idSolCtl != null)
+            {
+                foreach (var idsc in idSolCtl)
+                {
+                    var scctl = _context.SolicitudControl.Find(idsc);
+                    if (scctl != null)
+                    {
+                        _context.SolicitudControl.Remove(scctl);
+                        await _context.SaveChangesAsync();
+                    }
+                }
+            }
 
             // Busca las prioridades del flujo
             var prioridades = _context.FlujoPaso.Where(x => x.FlujoId == solicitud.FlujoId).Select(m => m.Prioridad).Distinct().OrderBy(m => m); // await //(x => x.Atributo == valor && x.Atributo2 == valor2)
@@ -174,6 +188,7 @@ namespace Solicitudes.Controllers
                 foreach (var flujopaso in flujoPasos)
                 {
                     // Convertir a método independiente para ejecutarlo asincrónicamente
+                    // Thread.start()
                     // Busca el Paso
                     var paso = await _context.Paso.FindAsync(flujopaso.PasoId);
                     if (paso == null)
@@ -184,7 +199,6 @@ namespace Solicitudes.Controllers
                     Console.WriteLine($"Flujo: {flujopaso.FlujoId} Paso: {flujopaso.PasoId}  Priority: {flujopaso.Prioridad}  NombrePaso: {paso.Nombre}");
 
                     //Validar que exista el dato para el campo solicitado
-                    bool existeDato = true;
                     // Busca los Campos para el Paso
                     var pasoCampos = _context.PasoCampo.Where(x => x.PasoId == flujopaso.PasoId && x.EsRequerido == true); // Que sea un campo Requerido
                     if (pasoCampos == null)
@@ -202,16 +216,6 @@ namespace Solicitudes.Controllers
                         }
                     }
 
-                    // Graba el registro del Paso del proceso
-                    /*
-                    using (var context1 = new SolicitudControlContext())
-                    {
-                        var blog = context.Blogs.First();
-                        blog.Url = "http://example.com/blog";
-                        context.SaveChanges();
-                    }
-                    */
-
                     SolicitudControl solControl = new SolicitudControl();
                     solControl.SolicitudId = solicitud.Id;
                     solControl.PasoId = flujopaso.PasoId;
@@ -225,24 +229,25 @@ namespace Solicitudes.Controllers
                         solControl.Detalle = "Faltan datos para el paso";
                         solControl.IDEstado = 9; //Incorrecto
                     }
-
-
-
-                    //Paso.wait
+                    _context.SolicitudControl.Add(solControl);
+                    await _context.SaveChangesAsync();
                 }
 
                 // esperar a que terminen los hilos para procesar la siguiente prioridad...
                 // WaitCallback...
             }
 
-            /*
-            //var flujo = _context.Database.SqlQuery<dynamic>($"Select * from vwFlujosPasos FP where FP.FlujoId = {id} Order by FP.Prioridad, FP.PasoId").ToList();
-
-            // Crear Clase asociada
-            // for each:
-            // Thread.start()
-
-            */
+            // Actualiza el estado de la solicitud //
+            if (existeDato)
+            {
+                solicitud.IDEstado = 3;  //procesado ok
+            }
+            else
+            {
+                solicitud.IDEstado = 9;  //Faltan procesos
+            }
+            _context.Entry(solicitud).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
 
             //return CreatedAtAction("GetFlujo", new { id = flujo.Id }, flujo);
             return CreatedAtAction("GetSolicitud", new { id = solicitud.Id }, solicitud);
