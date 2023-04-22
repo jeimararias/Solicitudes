@@ -55,7 +55,7 @@ Swagger provee los diferentes métodos para crear los Parámetros para los Flujo
 ### Ejecución: Procesamiento de Solicitudes
 1. Crear Solicitudes (api/Solicitud)
 2. Cargar campos (datos) asociados a la solicitud por cada paso del flujo. (api/SolicitudData)
-3. Procesar solicitud: ejecución: api/Solicitud/{n} n: Id de la solicitud
+3. Procesar solicitud: ejecución: api/Solicitud/{n}/Procesar donde n: Id de la solicitud
 
 ### Proceso
 Al ejecutar el Proceso, este procesa en forma asincrona los pasos cuya Prioridad sea la misma. 
@@ -63,3 +63,13 @@ La Prioridad es un número secuencial que inicia desde 0 hasta n.
 Ej: Si los pasos 1 y 2 se pueden procesar paralelos, se configuran con prioridad 0, luego el paso3 con priorid 1, luego paso 4, 5, 6 con prioridad 2.
 En este ejemplo, se procesan los pasos 1 y 2 asincroniamente, para continuar con los pasos de la prioridad 1, espera a que hayan terminado 
 los hilos de la prioridad cero, y asi sucesivamente.
+
+#### Resultado del Proceso:
+Se Retorna el Json de la solicitud, cuya variable IDEstado tendrá 2 valores:
+> 3: Procesado OK
+> 9: Proceso incompleto. Alguno de los Pasos esta incompleto
+
+El estdso de los pasos, no alcance a mostrarlo pero queda un registro por cada paso y su estado del Flujo de la Solicitud:
+Se puede visualizar en la base de datos mediante la sentencia siguiente:
+
+>> Select * from SolicitudControl where SolicitudId = {n}

@@ -5,10 +5,12 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using NuGet.Protocol;
 using Solicitudes.Models;
 
 namespace Solicitudes.Controllers
 {
+    //[RoutePrefix("api/[controller]")]
     [Route("api/[controller]")]
     [ApiController]
     public class SolicitudController : ControllerBase
@@ -121,11 +123,8 @@ namespace Solicitudes.Controllers
         }
 
         // Procesa solicitudes
-        // POST: api/Solicitud/Procesar/5
-        //[HttpPost("{id}")]
-        //[Route("Procesar")]
-        [HttpPost("{id}", Name = "Procesar")]
-        // [NonAction]
+        // POST: api/Solicitud/5/Procesar
+        [HttpPost("{id}/Procesar", Name = "Procesar")]
         public async Task<IActionResult> PostSolicitudProcesar(int id)
         {
             if (_context.Solicitud == null)
@@ -249,11 +248,19 @@ namespace Solicitudes.Controllers
             _context.Entry(solicitud).State = EntityState.Modified;
             await _context.SaveChangesAsync();
 
-            //return CreatedAtAction("GetFlujo", new { id = flujo.Id }, flujo);
-            return CreatedAtAction("GetSolicitud", new { id = solicitud.Id }, solicitud);
+            /* No me funcionó bien, entonces solo se retorna el estado de la Solicitud
+            var resultado = _context.SolicitudControl.Where(x => x.SolicitudId == id);
+            if (resultado == null)
+            {
+                return CreatedAtAction("GetSolicitud", new { id = solicitud.Id }, solicitud);
+            }
+            else
+            {
+                return CreatedAtAction("GetSolicitudControl", new { id = resultado.Id }, resultado);
+            }
+            */
 
-            //return await _context.Solicitud.ToListAsync();
-            //return NoContent();
+            return CreatedAtAction("GetSolicitud", new { id = solicitud.Id }, solicitud);
         }
     }
 }
