@@ -1,0 +1,13 @@
+{
+  "dependencies": {
+    "secrets1": {
+      "type": "secrets.user"
+    },
+    "mssql1": {
+      "secretStore": "LocalSecretsFile",
+      "type": "mssql.onprem",
+      "connectionId": "ConnectionStrings:server=JAVIATECH:SQLEXPRESS;database=SOLICITUDES;user=sa;password=Arijei2022",
+      "dynamicId": null
+    }
+  }
+}
